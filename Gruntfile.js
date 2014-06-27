@@ -3,6 +3,16 @@ module.exports = function(grunt)
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 
+		phpcs: {
+			sniff: {
+				dir: ['src/**/*.php'],
+				options: {
+					bin: 'vendor/bin/phpcs',
+					standard: 'psr2'
+				}
+			}
+		},
+
 		phpunit: {
 			test: {
 				options: {
@@ -22,7 +32,7 @@ module.exports = function(grunt)
 
 			classes: {
 				files: 'src/**/*.php',
-				tasks: ['phpunit:test']
+				tasks: ['phpunit:test', 'phpcs:sniff']
 			},
 
 			tests: {
@@ -33,6 +43,7 @@ module.exports = function(grunt)
 	})
 
 	grunt.loadNpmTasks('grunt-contrib-watch')
+	grunt.loadNpmTasks('grunt-phpcs')
 	grunt.loadNpmTasks('grunt-phpunit')
 
 	grunt.registerTask('default', ['watch'])
