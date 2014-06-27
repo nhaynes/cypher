@@ -5,6 +5,8 @@ use GuzzleHttp\Client;
 
 class Cypher
 {
+	protected $errors = array();
+
 	protected $host = 'http://localhost:7474';
 
 	protected $options = array(
@@ -30,14 +32,16 @@ class Cypher
 		'transaction' => null
 		);
 
-	public function __construct($host)
+	public function __construct($host = null)
 	{
-		$parse = parse_url($host);
+		if (!is_null($host)) {
+			$parse = parse_url($host);
 
-		$this->host = "{$parse['scheme']}://{$parse['host']}:{$parse['port']}";
+			$this->host = "{$parse['scheme']}://{$parse['host']}:{$parse['port']}";
 
-		if (isset($parse['user']) && isset($parse['pass'])) {
-			$this->options['auth'] = array($parse['user'], $parse['pass']);
+			if (isset($parse['user']) && isset($parse['pass'])) {
+				$this->options['auth'] = array($parse['user'], $parse['pass']);
+			}
 		}
 
 		$this->urls['begin'] = "{$this->host}/db/data/transaction";
@@ -48,27 +52,44 @@ class Cypher
 	{
 		$result = $this->operation('post', $this->urls['begin']);
 
+		if (!$result) {
+			return false;
+		}
+
 		$this->urls['commit'] = $result['results']['commit'];
 		$this->urls['transaction'] = $result['response']->getHeader('Location');
 
-		return $result['results'];
+		return $result['data'];
 	}
 
 	public function commit()
 	{
 		$result = $this->operation('post', $this->urls['commit']);
 
+		if (!$result) {
+			return false;
+		}
+
 		$this->urls['commit'] = null;
 		$this->urls['transaction'] = "{$this->host}/db/data/transaction/commit";
 
-		return $result['results'];
+		return $result['data'];
+	}
+
+	public function errors()
+	{
+		return $this->errors;
 	}
 
 	public function execute()
 	{
 		$result = $this->operation('post', $this->urls['transaction']);
 
-		return $result['results'];
+		if (!$result) {
+			return false;
+		}
+
+		return $result['data'];
 	}
 
 	public function operation($method, $url)
@@ -83,20 +104,25 @@ class Cypher
 		$response = $guzzle->send($request);
 		$results = $response->json();
 
+		if (count($results['errors']) > 0) {
+			$this->errors = $results['errors'];
+
+			return false;
+		}
+
 		if (count($results['results']) < 2) {
-			$results['results'] = new Result($results['results'][0]);
+			$results = new Result($results['results'][0]);
 		} else {
-			$results['results'] = array_map(function($result)
+			$results = array_map(function($result)
 				{
 					return new Result($result);
 				}, $results['results']);
 		}
 
-
 		return array(
 			'request' => $request,
 			'response' => $response,
-			'results' => $results
+			'data' => $results
 			);
 	}
 
@@ -104,10 +130,14 @@ class Cypher
 	{
 		$result = $this->operation('delete', $this->urls['transaction']);
 
+		if (!$result) {
+			return false;
+		}
+
 		$this->urls['commit'] = null;
 		$this->urls['transaction'] = "{$this->host}/db/data/transaction/commit";
 
-		return $result['results'];
+		return $result['data'];
 	}
 
 	public function statement($query, array $parameters = array())

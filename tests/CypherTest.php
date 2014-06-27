@@ -21,18 +21,20 @@ class CypherTest extends TestCase
 
 	public function testCase()
 	{
-		$cypher = new Cypher('http://localhost:7474');
+		$cypher = new Cypher;
 
-		$result = $cypher->statement('CREATE (n {node}) RETURN id(n) as id, n.name as name, n.born as born', array(
-			'node' => array(
+		$result = $cypher->statement('CREATE (person {endy}) RETURN person', array(
+			'endy' => array(
 				'name' => 'Endy Jasmi',
 				'born' => 1990
 				)
 			))
 			->execute();
 
-		// $cypher->rollback();
-
-		var_dump($result['results']->toJson());
+		if (!$result) {
+			var_dump($cypher->errors());
+		} else {
+			var_dump($result[0]['person']);
+		}
 	}
 }
