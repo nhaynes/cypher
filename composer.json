@@ -1,4 +1,14 @@
 {
+    "name": "endyjasmi/cypher",
+    "description": "PHP Adapter for Neo4j Cypher end point.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Endy Jasmi",
+            "email": "endyjasmi@gmail.com",
+            "role": "Developer"
+        }
+    ],
 	"autoload": {
 		"psr-4": {
 			"EndyJasmi\\": "src/"
