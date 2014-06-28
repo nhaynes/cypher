@@ -14,6 +14,16 @@ class Result implements ArrayAccess, Countable, Iterator
         $this->result = $result;
     }
 
+    public function containsUpdates()
+    {
+        return $this->result['stats']['contains_updates'];
+    }
+
+    public function info()
+    {
+        return $this->result['stats'];
+    }
+
     public function toArray()
     {
         $columns = $this->result['columns'];

@@ -81,4 +81,18 @@ class ResultTest extends TestCase
         $this->assertCount(3, $rows);
         $this->assertEquals('Endy Jasmi', $rows[1]['name']);
     }
+
+    public function testContainsUpdates()
+    {
+        $updates = $this->result->containsUpdates();
+
+        $this->assertFalse($updates);
+    }
+
+    public function testInfo()
+    {
+        $info = $this->result->info();
+
+        $this->assertArrayHasKey('nodes_created', $info);
+    }
 }
