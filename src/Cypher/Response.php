@@ -30,10 +30,10 @@ class Response implements ArrayAccess, Countable, Iterator
             );
 
         if (!empty($this->response['errors'])) {
-            throw new Exception(
-                $this->response['errors'][0]['code'] . ' : ' .
-                $this->response['errors'][0]['message']
-            );
+            $error = $this->response['errors'][0]['code'];
+            $error = "EndyJasmi\\Cypher\\StatusCodes\\" . str_replace('.', '\\', $error);
+
+            throw new $error($this->response['errors'][0]['message']);
         }
     }
 
