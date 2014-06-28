@@ -4,12 +4,17 @@ module.exports = function(grunt)
 		pkg: grunt.file.readJSON('package.json'),
 
 		phpcs: {
-			sniff: {
-				dir: ['src/**/*.php'],
-				options: {
-					bin: 'vendor/bin/phpcs',
-					standard: 'psr2'
-				}
+			options: {
+				bin: 'vendor/bin/phpcs',
+				standard: 'psr2'
+			},
+
+			classes: {
+				dir: ['src/**/*.php']
+			},
+
+			tests: {
+				dir: ['tests/**/*.php']
 			}
 		},
 
@@ -32,12 +37,12 @@ module.exports = function(grunt)
 
 			classes: {
 				files: 'src/**/*.php',
-				tasks: ['phpunit:test', 'phpcs:sniff']
+				tasks: ['phpunit:test', 'phpcs:classes']
 			},
 
 			tests: {
 				files: 'tests/**/*.php',
-				tasks: ['phpunit:test']
+				tasks: ['phpunit:test', 'phpcs:tests']
 			}
 		}
 	})

@@ -1,62 +1,117 @@
 #Cypher
-This is a PHP adapter for the Neo4j Cypher end point. Currently the code is usable but it is a quick hack. Depends on the feedback, I will put more work on this(Unit test, Comment, etc...).
+PHP Library to help with using Neo4j Cypher Query Language. More information about Neo4j can be found [here](http://neo4j.com/) and information for cypher can be found [here](http://neo4j.com/docs/2.1.1/cypher-query-lang/). Because of certain issue with travis, I have yet to attach a build badge but it's coming soon. This library is licensed under MIT so you can do whatever you want with it.
 
-By the way, I'm a newbie in the open source space, if you have any suggestion, do open a new issues. You dont have to tag, I will read them all.
+This library uses transaction rest api in Neo4j server hence only Neo4j 2.0 and above are supported. This library also uses guzzle 4 which requires PHP 5.4 and above.
 
 ##Installation
-You can install this package through composer. Either search through packagist or use the snippet below as a bare `composer.json`:
+This library is available through [composer](https://packagist.org/packages/endyjasmi/cypher). If you dont know how to use composer, a tutorial can be found [here](http://code.tutsplus.com/tutorials/easy-package-management-with-composer--net-25530).
+
+##Features
+1. Sending cypher
+2. Sending multiple cypher in a single request
+3. Support transaction
+4. Ported transaction status code to exception
+
+##Basic use case
+This use case and those following this assumes that Neo4j database is empty.
+
+First, let's create a node;
 ```
-{
-	"require": {
-		"endyjasmi/cypher": "0.*"
-	}
-}
+$cypher = new Cypher;
+
+$result = $cypher->statement(
+	'CREATE (jeffrey:Person {information}) RETURN jeffrey.name AS name',
+	array('information' => array(
+		'name' => 'Jeffrey Jasmi',
+		'born' => 1987
+	))
+)
+->execute();
+
+echo $result[0][0]['name']; // Jeffrey Jasmi
+```
+**Note on the result index:**
+
+1. The first index `0` represent the first statement result. You will see more use of this in the next section.
+2. The second index `0` represent the first row of the result which obviously in this case there's only a single row in the result.
+3. The third index `name` represent the identifier specified in the return clause of the cypher.
+
+###Returning a node
+Rather then returning property in the node one by one, you can also return the node itself. By doing this, the result of the node will be an associative array;
+```
+$cypher = Cypher;
+
+$result = $cypher->statement(
+	'MATCH (jeffrey:Person {name: {name}) RETURN jeffrey',
+	array(
+		'name' => 'jeffrey'
+	)
+)
+->execute();
+
+echo $result[0][0]['jeffrey']['name']; // Jeffrey Jasmi
+```
+**Note on the result index (This will be the last time):**
+
+1. The first index `0` represent the first statement result.
+2. The second index `0` represent the first row of the result.
+3. The third index `jeffrey` represent the identifier specified in the return clause. Because we are returning a node, this index will contain associative array of all the property of the node.
+4. The fourth index `name` is the property of the node `jeffrey`.
+
+###Custom configuration
+So far all our connection have been to connect to the default configuration options which is `http://localhost:7474`. In the event where you have custom configuration, you can easily provide a url to this library.
+```
+// Different scheme
+$cypher = new Cypher('https://localhost:7474');
+
+// Different host
+$cypher = new Cypher('https://other.host:7474');
+
+// Different port
+$cypher = new Cypher('http://localhost:7473');
+
+// Or you have setup basic authentication for neo4j server
+$cypher = new Cypher('http://username:password@localhost:7474');
 ```
 
-##Basic Usage
+##Batch use case
+By default, each time you execute a statement, a request is sent to the server and the server return result. For some who concern about overhead of establishing multiple http request, they might want to send multiple query in a single request. This can be done;
 ```
-$cypher = new Cypher('http://localhost:7474');
+$cypher = Cypher;
 
-$result = $cypher->statement('CREATE (person {endy}) RETURN person', array(
-		'endy' => array(
+$result = $cypher->statement(
+	'MATCH (jeffrey:Person {name: {name}) RETURN jeffrey',
+	array(
+		'name' => 'jeffrey'
+	)
+)
+->statement(
+	'CREATE (endy:Person {information}) RETURN endy',
+	array(
+		'information' => array(
 			'name' => 'Endy Jasmi',
 			'born' => 1990
 		)
-	))
-	->execute();
+	)
+)
+->execute();
 
-echo $result[0]['person']['name']; // Endy Jasmi
+echo $result[0][0]['jeffrey']['name']; // Jeffrey Jasmi
+echo $result[1][0]['endy']['name']; // Endy Jasmi
 ```
-`0` Index in the result represent first row.
+Notice how the first index changes.
 
-`person` represent the identifier used in the query
-
-`name` represent the property
-
-##Bulk Statement in a single request
-Notice how I set host to include username and password. I also skip setting the parameter in the statement method.
-```
-$cypher = new Cypher('https://user:pass@localhost:7473');
-
-$results = $cypher->statement('MATCH (person {name: "Endy Jasmi"}) return person')
-	->statement('CREATE (n) RETURN id(n) AS id')
-	->execute();
-
-echo $results[0][0]['person']['name']; // Result from the first statement
-echo $result[1][0]['id'] // Result from the second statement
-```
-
-##Transaction
-Notice how I skipped setting the host to use the default setting which is `http://localhost:7474`.
+##Transaction use case
+This library also support transaction. If you dont know what's transaction is, more information can be found [here](http://en.wikipedia.org/wiki/Database_transaction).
 ```
 $cypher = new Cypher;
 
 $cypher->beginTransaction();
 
-$cypher->statement('CREATE (n) RETURN n')
+$table_result = $cypher->statement('CREATE (table:Furniture) RETURN table')
 	->execute();
 
-$cypher->statement('CREATE (m) RETURN m')
+$chair_result = $cypher->statement('CREATE (chair:Furniture) RETURN chair')
 	->execute();
 
 $cypher->commit();
@@ -64,18 +119,37 @@ $cypher->commit();
 $cypher->rollback();
 ```
 
-##Errors
-When there is errors in the transaction, `execute` method will return `false`. You can get the array of errors returned by the neo4j server throught cypher `errors` method.
+##Handling errors
+This library port the status code returned by neo4j server as an php exception. For a list of valid status code which will be returned by neo4j server, you can refer [here](http://neo4j.com/docs/2.1.1/status-codes/).
 ```
 $cypher = new Cypher;
 
-$result = $cypher->statement('invalid query')
-	->execute();
-
-if (!$result) {
-	$errors = $cypher->errors();
+try {
+	$result = $cypher->statement('Invalid cypher statement')
+		->execute();
+} catch(InvalidSyntax $error) {
+	echo $error->getMessage();
 }
-
 ```
 
-That is all there is to this library. It is meant to be built on top of.
+The exception class are inplemented in a inheritance structure. Means that, rather then catching individual error, you can catch it's parent too. This design provides great control in handling errors.
+```
+$cypher = new Cypher;
+
+try {
+	$result = $cypher->statement('Invalid cypher statement')
+		->execute();
+} catch(InvalidSyntax $error) { // Catches specific error
+	echo $error->getMessage();
+} catch(Statement $error) { // Catches error which categorized under statement error
+	echo $error->getMessage();
+} catch(ClientError $error) { // Catches error which categorized under client error
+	echo $error->getMessage();
+} catch(Neo $error) { // Catches all neo4j returned error
+	echo $error->getMessage();
+}
+```
+The error exception class name are based on status codes which is returned by neo4j server. The list of status can be found [here](http://neo4j.com/docs/2.1.1/status-codes/).
+
+##Feedback
+If you have any feature request, bug report, proposal, comment, or anything related to this library. Do not hesitate to [open a new issues](https://github.com/endyjasmi/cypher/issues/new).
