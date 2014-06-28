@@ -1,7 +1,7 @@
 #Cypher
 PHP Library to help with using Neo4j Cypher Query Language. More information about Neo4j can be found [here](http://neo4j.com/) and information for cypher can be found [here](http://neo4j.com/docs/2.1.1/cypher-query-lang/). Because of certain issue with travis, I have yet to attach a build badge but it's coming soon. This library is licensed under MIT so you can do whatever you want with it.
 
-This library uses transaction rest api in Neo4j server hence only Neo4j 2.0 and above are supported.
+This library uses transaction rest api in Neo4j server hence only Neo4j 2.0 and above are supported. This library also uses guzzle 4 which requires PHP 5.4 and above.
 
 ##Installation
 This library is available through [composer](https://packagist.org/packages/endyjasmi/cypher). If you dont know how to use composer, a tutorial can be found [here](http://code.tutsplus.com/tutorials/easy-package-management-with-composer--net-25530).

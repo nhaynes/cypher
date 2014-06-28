@@ -1,5 +1,5 @@
 Backlog:
-  ☐ Depends on php 5.4 above because of guzzle
+  ✔ Depends on php 5.4 above because of guzzle @done (14-06-28 12:23)
   ☐ Result status
   ☐ Auto single row
   ☐ Readme
