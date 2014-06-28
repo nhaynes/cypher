@@ -1,157 +1,146 @@
 <?php namespace EndyJasmi;
 
-use EndyJasmi\Cypher\Result;
+use EndyJasmi\Cypher\Request;
+use EndyJasmi\Cypher\Response;
 use GuzzleHttp\Client;
 
 class Cypher
 {
-	protected $errors = array();
+    protected $config = array(
+        'scheme' => 'http',
+        'host' => 'localhost',
+        'port' => 7474,
+        'user' => null,
+        'pass' => null
+        );
 
-	protected $host = 'http://localhost:7474';
+    protected $guzzle;
 
-	protected $options = array(
-		'headers' => array(
-			'Accept' => 'application/json',
-			'Content-Type' => 'application/json',
-			'X-Stream' => 'true'
-			),
-		'config' => array(
-			'curl' => array(
-				CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
-				)
-			)
-		);
+    protected $operationUrls = array(
+        'beginTransaction' => null,
+        'commitTransaction' => null,
+        'transaction' => null
+        );
 
-	protected $statements = array(
-		'statements' => array()
-		);
+    protected $options = array(
+        'config' => array(
+            'curl' => array(
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
+                )
+            ),
+        'headers' => array(
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            'X-Stream' => 'true'
+            )
+        );
 
-	protected $urls = array(
-		'begin' => null,
-		'commit' => null,
-		'transaction' => null
-		);
+    public function __construct($host = null)
+    {
+        if (isset($host)) {
+            $config = parse_url($host);
+            $this->config = array_merge($this->config, $config);
 
-	public function __construct($host = null)
-	{
-		if (!is_null($host)) {
-			$parse = parse_url($host);
+            if (isset($this->config['user']) && isset($this->config['pass'])) {
+                $this->options['auth'] = array($this->config['user'], $this->config['pass']);
+            }
+        }
 
-			$this->host = "{$parse['scheme']}://{$parse['host']}:{$parse['port']}";
+        $host = $this->host();
+        $this->operationUrls['beginTransaction'] = "$host/db/data/transaction";
+        $this->operationUrls['transaction'] = "$host/db/data/transaction/commit";
+    }
 
-			if (isset($parse['user']) && isset($parse['pass'])) {
-				$this->options['auth'] = array($parse['user'], $parse['pass']);
-			}
-		}
+    public function beginTransaction(Request $request = null)
+    {
+        $options = $this->options;
 
-		$this->urls['begin'] = "{$this->host}/db/data/transaction";
-		$this->urls['transaction'] = "{$this->host}/db/data/transaction/commit";
-	}
+        if (isset($request)) {
+            $options['json'] = $request->toArray();
+        }
 
-	public function beginTransaction()
-	{
-		$result = $this->operation('post', $this->urls['begin']);
+        $result = $this->operation('post', 'beginTransaction', $options);
 
-		if (!$result) {
-			return false;
-		}
+        $location = $result['guzzleResponse']->getHeader('Location');
+        $commit = $result['guzzleResponse']->json();
+        $commit = $commit['commit'];
 
-		$this->urls['commit'] = $result['results']['commit'];
-		$this->urls['transaction'] = $result['response']->getHeader('Location');
+        $this->operationUrls['commitTransaction'] = $commit;
+        $this->operationUrls['transaction'] = $location;
 
-		return $result['data'];
-	}
+        return $result['response'];
+    }
 
-	public function commit()
-	{
-		$result = $this->operation('post', $this->urls['commit']);
+    public function commit()
+    {
+        $result = $this->operation('post', 'commitTransaction');
 
-		if (!$result) {
-			return false;
-		}
+        $host = $this->host();
+        $this->operationUrls['commitTransaction'] = null;
+        $this->operationUrls['transaction'] = "$host/db/data/transaction/commit";
+    }
 
-		$this->urls['commit'] = null;
-		$this->urls['transaction'] = "{$this->host}/db/data/transaction/commit";
+    public function execute(Request $request)
+    {
+        $options = $this->options;
+        $options['json'] = $request->toArray();
 
-		return $result['data'];
-	}
+        $result = $this->operation('post', 'transaction', $options);
 
-	public function errors()
-	{
-		return $this->errors;
-	}
+        return $result['response'];
+    }
 
-	public function execute()
-	{
-		$result = $this->operation('post', $this->urls['transaction']);
+    public function guzzle()
+    {
+        if (is_null($this->guzzle)) {
+            $this->guzzle = new Client;
+        }
 
-		if (!$result) {
-			return false;
-		}
+        return $this->guzzle;
+    }
 
-		return $result['data'];
-	}
+    public function host()
+    {
+        $scheme = $this->config['scheme'];
+        $host = $this->config['host'];
+        $port = $this->config['port'];
 
-	public function operation($method, $url)
-	{
-		$guzzle = new Client;
+        return "$scheme://$host:$port";
+    }
 
-		$options = $this->options;
-		$options['json'] = $this->statements;
-		$this->statements['statements'] = array();
+    public function operation($method, $operation, array $options = array())
+    {
+        if (empty($options)) {
+            $options = $this->options;
+        }
 
-		$request = $guzzle->createRequest($method, $url, $options);
-		$response = $guzzle->send($request);
-		$results = $response->json();
+        $guzzle = $this->guzzle();
+        $guzzleRequest = $guzzle->createRequest(
+            $method,
+            $this->operationUrls[$operation],
+            $options
+        );
+        $guzzleResponse = $guzzle->send($guzzleRequest);
+        $response = new Response($guzzleResponse);
 
-		if (count($results['errors']) > 0) {
-			$this->errors = $results['errors'];
+        return array(
+            'guzzleRequest' => $guzzleRequest,
+            'guzzleResponse' => $guzzleResponse,
+            'response' => $response
+            );
+    }
 
-			return false;
-		}
+    public function rollback()
+    {
+        $result = $this->operation('delete', 'transaction');
 
-		if (count($results['results']) < 2) {
-			$results = new Result($results['results'][0]);
-		} else {
-			$results = array_map(function($result)
-				{
-					return new Result($result);
-				}, $results['results']);
-		}
+        $host = $this->host();
+        $this->operationUrls['commitTransaction'] = null;
+        $this->operationUrls['transaction'] = "$host/db/data/transaction/commit";
+    }
 
-		return array(
-			'request' => $request,
-			'response' => $response,
-			'data' => $results
-			);
-	}
-
-	public function rollback()
-	{
-		$result = $this->operation('delete', $this->urls['transaction']);
-
-		if (!$result) {
-			return false;
-		}
-
-		$this->urls['commit'] = null;
-		$this->urls['transaction'] = "{$this->host}/db/data/transaction/commit";
-
-		return $result['data'];
-	}
-
-	public function statement($query, array $parameters = array())
-	{
-		$statement = array();
-		$statement['statement'] = $query;
-		$statement['includeStats'] = true;
-
-		if (!empty($parameters)) {
-			$statement['parameters'] = $parameters;
-		}
-
-		$this->statements['statements'][] = $statement;
-
-		return $this;
-	}
+    public function statement($query, array $parameters = array())
+    {
+        return new Request($this, $query, $parameters);
+    }
 }
