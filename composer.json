@@ -1,6 +1,8 @@
 {
     "name": "endyjasmi/cypher",
-    "description": "PHP Adapter for Neo4j Cypher end point.",
+    "description": "Neo4j Cypher Adapter for PHP",
+    "keywords": ["database", "neo4j", "cypher", "query", "graph", "db", "data", "crud", "adapter"],
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
@@ -9,6 +11,12 @@
             "role": "Developer"
         }
     ],
+    "support": {
+        "email": "endyjasmi@gmail.com",
+        "issues": "",
+        "wiki": "",
+        "source": ""
+    },
 	"autoload": {
 		"psr-4": {
 			"EndyJasmi\\": "src/"
