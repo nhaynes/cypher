@@ -1,4 +1,4 @@
-#Cypher
+#Cypher [![Build Status](https://travis-ci.org/endyjasmi/cypher.svg?branch=master)](https://travis-ci.org/endyjasmi/cypher) [![Latest Stable Version](https://poser.pugx.org/endyjasmi/cypher/v/stable.svg)](https://packagist.org/packages/endyjasmi/cypher) [![License](https://poser.pugx.org/endyjasmi/cypher/license.svg)](https://packagist.org/packages/endyjasmi/cypher) [![Total Downloads](https://poser.pugx.org/endyjasmi/cypher/downloads.svg)](https://packagist.org/packages/endyjasmi/cypher)
 PHP Library to help with using Neo4j Cypher Query Language. More information about Neo4j can be found [here](http://neo4j.com/) and information for cypher can be found [here](http://neo4j.com/docs/2.1.1/cypher-query-lang/). Because of certain issue with travis, I have yet to attach a build badge but it's coming soon. This library is licensed under MIT so you can do whatever you want with it.
 
 This library uses transaction rest api in Neo4j server hence only Neo4j 2.0 and above are supported. This library also uses guzzle 4 which requires PHP 5.4 and above.
@@ -58,8 +58,42 @@ echo $result[0][0]['jeffrey']['name']; // Jeffrey Jasmi
 3. The third index `jeffrey` represent the identifier specified in the return clause. Because we are returning a node, this index will contain associative array of all the property of the node.
 4. The fourth index `name` is the property of the node `jeffrey`.
 
+###Query information
+More information about certain query can be gathered; 
+```
+$cypher = Cypher;
+
+$result = $cypher->statement('CREATE (donney:Person {information}) RETURN donney')
+	->execute();
+
+if ($result[0]->containsUpdates()) {
+	$info = $result[0]->info();
+
+	var_dump($info);
+
+    echo $info['nodes_created']; // 1
+}
+```
+Info dump from above result in:
+```
+array(
+	'constraints_added' => 0,
+	'constraints_removed' => 0,
+	'contains_updates' => true,
+	'indexes_added' => 0,
+	'indexes_removed' => 0,
+	'labels_added' => 0,
+	'labels_removed' => 0,
+	'nodes_created' => 1,
+	'nodes_deleted' => 0,
+	'properties_set' => 2,
+	'relationship_created' => 0,
+	'relationship_deleted' => 0
+)
+```
+
 ###Custom configuration
-So far all our connection have been to connect to the default configuration options which is `http://localhost:7474`. In the event where you have custom configuration, you can easily provide a url to this library.
+So far all our connection have been to connected with the default configuration options which is `http://localhost:7474`. In the event where you have custom configuration, you can easily provide a url to this library.
 ```
 // Different scheme
 $cypher = new Cypher('https://localhost:7474');

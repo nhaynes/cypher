@@ -19,7 +19,8 @@ class IntegratedTest extends TestCase
         )
         ->execute();
 
-        var_dump($result[0][0]['person.name']);
+        var_dump($result[0]->containsUpdates());
+        var_dump($result[0]->info());
     }
 
     public function testBasicCase()
