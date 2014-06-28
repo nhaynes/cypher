@@ -2,9 +2,26 @@
 
 use PHPUnit_Framework_TestCase as TestCase;
 use EndyJasmi\Cypher;
+use EndyJasmi\Cypher\StatusCodes\Neo\ClientError\Statement\EntityNotFound;
 
 class IntegratedTest extends TestCase
 {
+    public function testMe()
+    {
+        $cypher = new Cypher;
+
+        $result = $cypher->statement(
+            'CREATE (person {information}) RETURN person.name',
+            array('information' => array(
+                'name' => 'Jeffrey Jasmi',
+                'born' => 1987
+            ))
+        )
+        ->execute();
+
+        var_dump($result[0][0]['person.name']);
+    }
+
     public function testBasicCase()
     {
         $cypher = new Cypher;
@@ -53,9 +70,6 @@ class IntegratedTest extends TestCase
         var_dump($fetch[0][0]['id']); // Changes persist after commit
     }
 
-    /**
-     * @expectedException Exception
-     */
     public function testTransactionRollback()
     {
         $cypher = new Cypher('http://localhost:7474');
@@ -72,7 +86,7 @@ class IntegratedTest extends TestCase
                 'START n = node({id}) RETURN id(n) AS id',
                 array('id' => $create[0][0]['id'])
             )->execute();
-        } catch (Exception $error) {
+        } catch (EntityNotFound $error) {
             // var_dump($error->code);
             var_dump($error->getMessage());
         }
