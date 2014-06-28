@@ -13,9 +13,8 @@
     ],
     "support": {
         "email": "endyjasmi@gmail.com",
-        "issues": "",
-        "wiki": "",
-        "source": ""
+        "issues": "https://github.com/endyjasmi/cypher/issues",
+        "source": "https://github.com/endyjasmi/cypher"
     },
 	"autoload": {
 		"psr-4": {

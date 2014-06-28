@@ -6,6 +6,22 @@ use EndyJasmi\Cypher\StatusCodes\Neo\ClientError\Statement\EntityNotFound;
 
 class IntegratedTest extends TestCase
 {
+    public function testMe()
+    {
+        $cypher = new Cypher;
+
+        $result = $cypher->statement(
+            'CREATE (person {information}) RETURN person.name',
+            array('information' => array(
+                'name' => 'Jeffrey Jasmi',
+                'born' => 1987
+            ))
+        )
+        ->execute();
+
+        var_dump($result[0][0]['person.name']);
+    }
+
     public function testBasicCase()
     {
         $cypher = new Cypher;
