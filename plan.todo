@@ -1,4 +1,5 @@
 Backlog:
+  ☐ Depends on php 5.4 above because of guzzle
   ☐ Result status
   ☐ Auto single row
   ☐ Readme
