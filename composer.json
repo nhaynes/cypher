@@ -1,7 +1,7 @@
 {
     "name": "endyjasmi/cypher",
     "description": "Neo4j Cypher Adapter for PHP",
-    "keywords": ["database", "neo4j", "cypher", "query", "graph", "db", "data", "crud", "adapter"],
+    "keywords": ["laravel", "database", "neo4j", "cypher", "query", "graph", "data"],
     "type": "library",
     "license": "MIT",
     "authors": [
