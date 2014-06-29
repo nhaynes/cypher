@@ -4,8 +4,10 @@ use ArrayAccess;
 use Countable;
 use Exception;
 use Iterator;
+use Illuminate\Support\Contracts\ArrayableInterface;
+use Illuminate\Support\Contracts\JsonableInterface;
 
-class Result implements ArrayAccess, Countable, Iterator
+class Result implements ArrayAccess, Countable, Iterator, ArrayableInterface, JsonableInterface
 {
     protected $result;
 

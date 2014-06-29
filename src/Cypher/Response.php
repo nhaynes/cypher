@@ -6,8 +6,10 @@ use Exception;
 use Iterator;
 use EndyJasmi\Cypher\Response\Result;
 use GuzzleHttp\Message\Response as GuzzleResponse;
+use Illuminate\Support\Contracts\ArrayableInterface;
+use Illuminate\Support\Contracts\JsonableInterface;
 
-class Response implements ArrayAccess, Countable, Iterator
+class Response implements ArrayAccess, Countable, Iterator, ArrayableInterface, JsonableInterface
 {
     protected $guzzleResponse;
 
