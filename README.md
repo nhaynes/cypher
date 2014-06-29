@@ -1,4 +1,4 @@
-#Cypher [![Build Status](https://travis-ci.org/endyjasmi/cypher.svg?branch=master)](https://travis-ci.org/endyjasmi/cypher) [![Latest Stable Version](https://poser.pugx.org/endyjasmi/cypher/v/stable.svg)](https://packagist.org/packages/endyjasmi/cypher) [![License](https://poser.pugx.org/endyjasmi/cypher/license.svg)](https://packagist.org/packages/endyjasmi/cypher) [![Total Downloads](https://poser.pugx.org/endyjasmi/cypher/downloads.svg)](https://packagist.org/packages/endyjasmi/cypher)
+#Cypher [![Build Status](https://travis-ci.org/endyjasmi/cypher.svg?branch=1.2.2)](https://travis-ci.org/endyjasmi/cypher) [![Latest Stable Version](https://poser.pugx.org/endyjasmi/cypher/v/stable.svg)](https://packagist.org/packages/endyjasmi/cypher) [![License](https://poser.pugx.org/endyjasmi/cypher/license.svg)](https://packagist.org/packages/endyjasmi/cypher) [![Total Downloads](https://poser.pugx.org/endyjasmi/cypher/downloads.svg)](https://packagist.org/packages/endyjasmi/cypher)
 PHP Library to help with using Neo4j Cypher Query Language. More information about Neo4j can be found [here](http://neo4j.com/) and information for cypher can be found [here](http://neo4j.com/docs/2.1.1/cypher-query-lang/). It also serve as a [laravel 4](http://laravel.com/) package and it is licensed under MIT so you can do whatever you want with it.
 
 This library uses transaction rest api in Neo4j server hence only Neo4j 2.0 and above are supported. This library also uses guzzle 4 which requires PHP 5.4 and above.
@@ -186,16 +186,14 @@ try {
 The error exception class name are based on status codes which is returned by neo4j server. The list of status can be found [here](http://neo4j.com/docs/2.1.1/status-codes/).
 
 ##Using as laravel package
-To use this as a laravel package, you would first need to `require` it in your application. Then register the service provider into the laravel framework. You can do so by adding `EndyJasmi\Cypher\ServiceProvider` into providers array in `app\config\app.php` file.
+To use this as a laravel package, you would first need to `require` it in your application `composer.json`. Then register the service provider into the laravel framework. You can do so by adding `EndyJasmi\Cypher\ServiceProvider` into `providers` array in `app\config\app.php` file.
 
 Once the provider has been registered, you are ready to use the library like following;
 ```
-Route::get('/', function () {
-	$result = Cypher::statement('MATCH (jeffrey:Person {name: {name}} RETURN jeffrey')
-		->execute();
+$result = Cypher::statement('MATCH (jeffrey:Person {name: {name}} RETURN jeffrey', array('name' =>  'jeffrey')))
+	->execute();
 
-	return $result[0][0]->toJson();
-});
+return $result[0][0]->toJson();
 ```
 All the method is the same as above with the difference only in how we call the cypher instance.
 
