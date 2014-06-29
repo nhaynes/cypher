@@ -49,7 +49,7 @@ class Response implements ArrayAccess, Countable, Iterator, ArrayableInterface, 
         );
     }
 
-    public function toJson()
+    public function toJson($options = 0)
     {
         return json_encode($this->toArray());
     }
