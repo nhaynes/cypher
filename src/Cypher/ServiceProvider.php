@@ -1,5 +1,6 @@
 <?php namespace EndyJasmi\Cypher;
 
+use EndyJasmi\Cypher;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider as Provider;
 
