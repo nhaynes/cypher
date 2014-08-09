@@ -1,3 +1,5 @@
+#This package have been renamed and moved to [here](https://github.com/endyjasmi/neo4j).
+
 #Neo4j Cypher PHP Adapter
 [![Build Status](https://travis-ci.org/endyjasmi/cypher.svg?branch=1.2.6)](https://travis-ci.org/endyjasmi/cypher) [![Latest Stable Version](https://poser.pugx.org/endyjasmi/cypher/v/stable.svg)](https://packagist.org/packages/endyjasmi/cypher) [![Total Downloads](https://poser.pugx.org/endyjasmi/cypher/downloads.svg)](https://packagist.org/packages/endyjasmi/cypher) [![Latest Unstable Version](https://poser.pugx.org/endyjasmi/cypher/v/unstable.svg)](https://packagist.org/packages/endyjasmi/cypher) [![License](https://poser.pugx.org/endyjasmi/cypher/license.svg)](https://packagist.org/packages/endyjasmi/cypher)
 
